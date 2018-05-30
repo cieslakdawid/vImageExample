@@ -89,7 +89,8 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         buffer.width = vImagePixelCount(CVPixelBufferGetWidth(pixelBuffer))
         buffer.height = vImagePixelCount(CVPixelBufferGetHeight(pixelBuffer))
 
-        let vformat = vImageCVImageFormat_CreateWithCVPixelBuffer(pixelBuffer)
+        let vformat = vImageCVImageFormat_CreateWithCVPixelBuffer(pixelBuffer).takeRetainedValue()
+        vImageCVImageFormat_SetColorSpace(vformat, CGColorSpaceCreateDeviceRGB())
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageByteOrderInfo.orderMask.rawValue | CGImageAlphaInfo.last.rawValue)
         
         var cgFormat = vImage_CGImageFormat(bitsPerComponent: 8,
@@ -101,7 +102,7 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
                                             renderingIntent: .defaultIntent)
 
         
-        let error = vImageBuffer_InitWithCVPixelBuffer(&buffer, &cgFormat, pixelBuffer, vformat!.takeRetainedValue(), nil, vImage_Flags(kvImageNoFlags))
+        let error = vImageBuffer_InitWithCVPixelBuffer(&buffer, &cgFormat, pixelBuffer, vformat, nil, vImage_Flags(kvImageNoFlags))
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
         guard error == kvImageNoError else {
             print("Error: Could not create vImageBuffer")
